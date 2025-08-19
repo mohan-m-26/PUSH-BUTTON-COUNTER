@@ -1,0 +1,50 @@
+#include <LiquidCrystal.h>
+
+// LCD in 4-bit mode: RS, E, D4, D5, D6, D7
+LiquidCrystal lcd(7, 6, 5, 4, 3, 8);
+
+const int tempPin = A0;   // Potentiometer as LM35
+const int buttonPin = 2;  // Push button
+int count = 0;
+bool lastButtonState = HIGH;
+
+void setup() {
+  pinMode(buttonPin, INPUT_PULLUP);
+  lcd.begin(16, 2);
+  Serial.begin(9600);
+}
+
+void loop() {
+  // --- Button Counter ---
+  bool buttonState = digitalRead(buttonPin);
+  if (buttonState == LOW && lastButtonState == HIGH) {
+    count++;
+    delay(200); // debounce
+  }
+  lastButtonState = buttonState;
+
+  // --- Temperature Reading ---
+  int raw = analogRead(tempPin);
+  float voltage = raw * (5.0 / 1023.0); // convert to voltage
+  float tempC = voltage * 100;          // LM35: 10mV per °C
+
+  // --- Display on LCD ---
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Count: ");
+  lcd.print(count);
+
+  lcd.setCursor(0, 1);
+  lcd.print("Temp: ");
+  lcd.print(tempC);
+  lcd.print(" C");
+
+  // --- Serial Monitor Output ---
+  Serial.print("Count: ");
+  Serial.print(count);
+  Serial.print(" | Temp: ");
+  Serial.print(tempC);
+  Serial.println(" C");
+
+  delay(500);
+}
